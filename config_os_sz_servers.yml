@@ -1,0 +1,4 @@
+- hosts: sz_servers
+  roles:
+  - system_prepare_for_oracle 
+

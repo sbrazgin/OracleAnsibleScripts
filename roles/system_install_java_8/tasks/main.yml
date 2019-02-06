@@ -1,0 +1,25 @@
+---
+  - name: create dir to files 
+    file: path={{ DISTR_PATH }}
+          state=directory
+
+  - name: copy java distrib file
+    copy:
+      src: "{{ JAVA_VERSION }}.rpm"
+      dest: "{{ DISTR_PATH }}/{{ JAVA_VERSION }}.rpm"
+    with_items:
+      - "{{ JAVA_VERSION }}.rpm"
+
+  - name: install jdk SLES
+    zypper:
+      name: "{{ DISTR_PATH }}/{{ JAVA_VERSION }}.rpm"
+      state: present
+      disable_gpg_check: yes
+    when: (ansible_distribution == "SLES")
+
+  - name: install jdk CentOS
+    yum:
+      name: "{{ DISTR_PATH }}/{{ JAVA_VERSION }}.rpm"
+      state: present
+    when: (ansible_distribution == "CentOS")   
+

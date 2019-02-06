@@ -1,0 +1,7 @@
+---
+  INSTALL_PATH: /opt/oracle/product/11.2.0
+
+  ## must be ext = .tar.gz
+  ORACLE_ARCHIVE: oracle11204_PSU171017_home
+
+  DB_NAME: TEST

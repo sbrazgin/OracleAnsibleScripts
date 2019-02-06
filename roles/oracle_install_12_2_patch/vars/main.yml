@@ -1,0 +1,11 @@
+---
+
+installer_OPatch_archive: "p6880880_121010_Linux-x86-64.zip"
+
+# JAN 2018 Release update
+installer_PSU_archive: "p27105253_122010_Linux-x86-64.zip"
+installer_OJVM_archive: "p27001739_122010_Linux-x86-64.zip"
+installer_PSU_code: 27105253
+installer_OJVM_code: 27001739
+
+

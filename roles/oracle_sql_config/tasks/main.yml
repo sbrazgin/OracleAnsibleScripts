@@ -1,0 +1,33 @@
+---
+
+  - name: Create folder for SQL files
+    file: 
+      state=directory 
+      path={{ oracle_stage }}/sql
+      group=oinstall
+      owner=oracle
+
+  - name: Copy SQL1 file
+    copy: 
+      src=config_profile.sql 
+      dest='{{ oracle_stage }}/sql'
+      group=oinstall
+      owner=oracle
+
+  - set_fact:
+      execute_command: "sqlplus {{ Oracle_Username }}/{{ oracle_databases.0.oracle_db_passwd }} @config_profile.sql"
+
+  - name: execute
+    shell: "echo exit | {{ execute_command }}"
+#    shell: "echo exit | {{ execute_command }} >> ./Oracle_Output.csv"
+    args:
+      chdir: "{{ oracle_stage }}/sql"
+    environment:
+      ORACLE_HOME: "{{ oracle_home }}"
+      ORACLE_SID: "{{ oracle_databases.0.oracle_db_name }}"
+      HOME: /home/oracle
+      PATH: "{{ oracle_home }}/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/home/oracle/bin"
+    register: sqlout
+
+  - debug:
+     var: sqlout.stdout_lines

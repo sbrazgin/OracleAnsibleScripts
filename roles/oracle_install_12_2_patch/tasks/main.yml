@@ -1,0 +1,44 @@
+---
+
+#  - name: prepare latest opatch
+#    shell: rm -rf {{ oracle_home }}/OPatch 
+
+  - name: Extract OPatch to ORACLE_HOME
+    unarchive: 
+      src={{ installer_OPatch_archive }}   
+      dest={{ oracle_home }}
+      remote_src=false
+    become: yes
+    become_user: oracle
+
+  - name: Extract PSU to ORACLE_HOME
+    unarchive: 
+      src={{ installer_PSU_archive }}
+      dest={{ oracle_home }}
+      remote_src=false
+    become: yes
+    become_user: oracle
+
+  - name: Extract OJVM to ORACLE_HOME
+    unarchive: 
+      src={{ installer_OJVM_archive }}   
+      dest={{ oracle_home }}
+      remote_src=false
+    become: yes
+    become_user: oracle
+
+  - name: Apply PSU 
+    shell: "export ORACLE_HOME={{ oracle_home }}; {{ oracle_home }}/OPatch/opatch apply -silent "
+    args:
+      chdir: "{{ oracle_home }}/{{ installer_PSU_code }}"
+    become: yes
+    become_user: oracle
+
+  - name: Apply OJVM
+    shell: "export ORACLE_HOME={{ oracle_home }}; {{ oracle_home }}/OPatch/opatch apply -silent "
+    args:
+      chdir: "{{ oracle_home }}/{{ installer_OJVM_code }}"
+    become: yes
+    become_user: oracle
+
+    

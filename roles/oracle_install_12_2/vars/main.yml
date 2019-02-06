@@ -1,0 +1,8 @@
+---
+
+installer_archives:
+  - "linuxx64_12201_database.zip"
+
+install_type_db: INSTALL_DB_SWONLY
+
+

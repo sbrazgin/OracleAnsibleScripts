@@ -1,0 +1,168 @@
+##################################################################
+####### users / roles
+##################################################################
+
+
+- name: add oracle groups
+  group: 
+    name={{ item.name }} 
+  with_items:
+      - { name: 'oinstall' }
+      - { name: 'dba'}
+
+
+- name: add oracle user
+  user: 
+      name=oracle 
+      group=oinstall 
+      groups=dba 
+      home=/home/oracle 
+      createhome=no
+      password={{ 'oracle'|password_hash('sha512', 'cRhJP88S') }}
+
+- name: create oracle home 
+  file: 
+      path=/home/oracle 
+      state=directory 
+      owner=oracle 
+      group=dba
+
+##################################################################
+####### /etc/sysctl.conf
+##################################################################
+
+- name: Change kernel parameters
+  sysctl: name="{{ item.key }}" value="{{ item.value }}" state=present
+  with_dict: "{{ kernel_params }}"
+  register: resultUpdateKernel
+
+
+- name: restart sysctl
+  shell: sysctl -p
+  when: resultUpdateKernel.changed
+
+
+ 
+##################################################################
+############# config /etc/security/limits.conf ###################
+##################################################################
+
+- name: check desc in /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     line='#ORACLE_DB params' 
+     backup=yes 
+  register: resultAddLineLimits
+
+
+- name: add desc to /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     regexp=^#ORACLE_DB
+     line='\n#ORACLE_DB params' 
+  when: resultAddLineLimits.changed
+
+
+- name: add line to /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     regexp='^oracle soft nofile'
+     line='oracle soft nofile 65536'
+
+- name: add line to /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     regexp='^oracle hard nofile'
+     line='oracle hard nofile 65536'
+
+- name: add line to /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     regexp='^oracle soft nproc'
+     line='oracle soft nproc 16384'
+
+- name: add line to /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     regexp='^oracle hard nproc'
+     line='oracle hard nproc 16384'
+
+- name: add line to /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     regexp='^oracle soft stack'
+     line='oracle soft stack 10240'
+
+- name: add line to /etc/security/limits.conf
+  lineinfile: 
+     dest=/etc/security/limits.conf
+     regexp='^oracle hard stack'
+     line='oracle hard stack 32768'
+
+
+##################################################################
+#############      /etc/pam.d/login            ###################
+##################################################################
+
+- name: add line to /etc/pam.d/login
+  lineinfile: 
+     dest=/etc/pam.d/login
+     regexp='^session required pam_limits.so'
+     line='session required pam_limits.so'
+
+
+
+##################################################################
+#############      /etc/profile                ###################
+##################################################################
+
+- name: add to /etc/profile 
+  blockinfile:
+    path: /etc/profile
+    marker: "# {mark} ORACLE DB params"
+    block: |
+      if [ $USER = "oracle" ] ; then
+        if [ $SHELL = "/bin/ksh" ]; then
+          ulimit -p 16384
+          ulimit -n 65536
+        else
+          ulimit -u 16384 -n 65536
+        fi
+        umask 022
+      fi
+
+
+##################################################################
+#############  install packages                ###################
+##################################################################
+
+- import_tasks: redhat.yml
+  when: ansible_distribution|lower == 'redhat'
+
+- import_tasks: debian.yml
+  when: ansible_distribution|lower == 'debian'
+
+- import_tasks: sles.yml
+  when: ansible_distribution|lower == 'sles'
+
+
+##################################################################
+#############      /etc/ssh/sshd_config        ###################
+##################################################################
+
+- name: add to /etc/ssh/sshd_config 
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    marker: "# {mark} ORACLE DB params"
+    block: |
+      X11Forwarding yes
+      X11DisplayOffset 10
+      X11UseLocalhost yes
+  register: resultUpdateSshd
+
+- name: Restart sshd
+  service:
+    name: 'sshd'
+    state: 'restarted'
+  when: resultUpdateSshd.changed
+

@@ -1,0 +1,6 @@
+- hosts: srv-osbsz-wl10
+  roles:
+  - system_sshd_oracle_off 
+
+
+

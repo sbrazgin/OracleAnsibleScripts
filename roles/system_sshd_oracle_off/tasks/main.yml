@@ -1,0 +1,23 @@
+- name: Drop AllowGroups oracle in /etc/ssh/sshd_config
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowGroups(.*) oracle([\s|$].*)$'
+    replace: 'AllowGroups\1\2'
+
+- name: Drop AllowGroups oinstall in /etc/ssh/sshd_config
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowGroups(.*) oinstall([\s|$].*)$'
+    replace: 'AllowGroups\1\2'
+
+- name: Drop AllowGroups dba in /etc/ssh/sshd_config
+  replace:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowGroups(.*) dba([\s|$].*)$'
+    replace: 'AllowGroups\1\2'
+
+- name: Restart sshd
+  service:
+    name: 'sshd'
+    state: 'restarted'
+

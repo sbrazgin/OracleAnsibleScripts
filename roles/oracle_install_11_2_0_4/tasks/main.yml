@@ -1,0 +1,102 @@
+################################################################################
+# This role installs the Oracle Database 11g software
+################################################################################
+
+### COPY and extract oracle distrib
+
+- name: Create folder for installation files
+  file: state=directory path={{ INSTALL_PATH }}
+
+- name: Copy installer files
+  copy: 
+    src={{ ORACLE_ARCHIVE }}.tar.gz 
+    dest='{{ INSTALL_PATH }}' 
+    force=no
+
+- name: Check that the tar exists
+  stat:
+    path: '{{ INSTALL_PATH }}/{{ ORACLE_ARCHIVE }}.tar'
+  register: stat_result
+
+- name: Extract tar installation files if not exists
+  command: chdir={{ INSTALL_PATH }}  gunzip {{ ORACLE_ARCHIVE }}.tar.gz
+  when: stat_result.stat.exists == False 
+
+- name: Check that the oracle home exists
+  stat:
+    path: '{{ INSTALL_PATH }}/dbhome_1'
+  register: stat_result_home
+
+- name: Extract tar to oracle_home
+  unarchive:
+    src: '{{ INSTALL_PATH }}/{{ ORACLE_ARCHIVE }}.tar'
+    dest: '{{ INSTALL_PATH }}'
+    remote_src: yes
+  when: stat_result_home.stat.isdir is not defined 
+##  command: chdir={{ INSTALL_PATH }} tar -xvf {{ ORACLE_ARCHIVE }}.tar
+
+- name: Set owner for /opt/oracle
+  command: chown -R oracle:oinstall /opt/oracle
+  when: stat_result_home.stat.isdir is not defined 
+
+
+
+### RUN installer
+
+- name: start clone oracle home
+  command: chdir={{ INSTALL_PATH }}/dbhome_1/clone/bin {{ INSTALL_PATH }}/dbhome_1/perl/bin/perl {{ INSTALL_PATH }}/dbhome_1/clone/bin/clone.pl ORACLE_BASE="/opt/oracle/" ORACLE_HOME="{{ INSTALL_PATH }}/dbhome_1" OSDBA_GROUP=dba OSOPER_GROUP=dba -defaultHomeName
+  become: true
+  become_user: oracle
+  when: stat_result_home.stat.isdir is not defined 
+
+- name: run script orainstRoot.sh
+  command: '/home/oracle/oraInventory/orainstRoot.sh'
+  when: stat_result_home.stat.isdir is not defined 
+
+
+- name: run root script root.sh
+  command: '{{ INSTALL_PATH }}/dbhome_1/root.sh'
+  when: stat_result_home.stat.isdir is not defined 
+
+
+
+
+### ORAENV file
+
+- name: Check that the oraenv exists
+  stat:
+    path: '/home/oracle/.oraenv.{{ DB_NAME }}.sh'
+  register: stat_oraenv_result
+
+- name: Generate the oraenv file
+  template: src=oraenv.sh dest=/home/oracle/.oraenv.{{ DB_NAME }}.sh
+  become: true
+  become_user: oracle
+  when: stat_oraenv_result.stat.exists == False 
+
+- name: Change mode the oraenv file
+  file:
+    path: /home/oracle/.oraenv.{{ DB_NAME }}.sh
+    mode: "u+rwx"
+  when: stat_oraenv_result.stat.exists == False 
+#  command: 'chmod u+x /home/oracle/.oraenv.{{ DB_NAME }}.sh'
+
+- name: Create .bash_profile if not exists
+  file:
+    path: /home/oracle/.bash_profile
+    state: touch
+    owner: oracle
+    group: oinstall
+  when: stat_oraenv_result.stat.exists == False 
+
+- name: add to /home/oracle/.bash_profile
+  blockinfile:
+    path: /home/oracle/.bash_profile
+    marker: "# {mark} ORACLE DB env params"
+    block: |
+      . /home/oracle/.oraenv.{{ DB_NAME }}.sh
+  when: stat_oraenv_result.stat.exists == False 
+
+
+
+

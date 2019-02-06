@@ -1,0 +1,21 @@
+[GENERAL]
+RESPONSEFILE_VERSION="12.2"
+CREATE_TYPE="CUSTOM"
+
+[oracle.net.ca]
+BBOC#INSTALLED_COMPONENTS;StringList;list of installed components
+INSTALLED_COMPONENTS={"server","net8","javavm"}
+INSTALL_TYPE=""custom""
+LISTENER_NUMBER=1
+LISTENER_NAMES={"{{ listener_name_template | upper}}"}
+LISTENER_PROTOCOLS={"{{ listener_protocols_template |upper }};{{ listener_port_template }}"}
+LISTENER_START=""{{ listener_name_template | upper }}""
+NAMING_METHODS={"TNSNAMES","ONAMES","HOSTNAME"}
+NSN_NUMBER=2
+NSN_NAMES={"EXTPROC_CONNECTION_DATA","{{ item.oracle_db_name }}"}
+NSN_SERVICE={"PLSExtProc","{{ item.oracle_db_name }}"}
+NSN_PROTOCOLS={"IPC;EXTPROC","TCP;{{ server_hostname }};{{ listener_port_template }}"}
+
+
+
+

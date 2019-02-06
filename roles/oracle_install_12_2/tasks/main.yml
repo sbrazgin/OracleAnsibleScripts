@@ -1,0 +1,106 @@
+################################################################################
+# This role installs the Oracle Database 12c software, configure a database, listener 
+# author: Sergey Brazgin
+################################################################################
+
+
+############################
+#####  copy distr
+############################
+- name: Create folder for installation files
+  file: 
+    state=directory 
+    path={{ oracle_stage }}
+    group=oinstall
+    owner=oracle
+
+- name: Check that the installer files exists
+  stat:
+    path: '{{ oracle_stage }}/{{ installer_archives[0] }}'
+  register: V_INST_FILE_STAT
+
+- name: Copy installer files
+  copy: 
+    src={{ item }} 
+    dest='{{ oracle_stage }}'
+    group=oinstall
+    owner=oracle
+  with_items: '{{ installer_archives }}'
+  when: V_INST_FILE_STAT.stat.exists == False 
+
+
+############################
+#####  extract distr
+############################
+
+- name: Check that the installer directory exists
+  stat:
+    path: '{{ oracle_stage }}/database'
+  register: V_INST_DIR_STAT
+
+
+- name: Extract installation files
+  unarchive:
+    src: '{{ oracle_stage }}/{{ item }}'
+    dest: '{{ oracle_stage }}'
+    remote_src: yes
+  with_items: '{{ installer_archives }}'
+  become: yes
+  become_user: oracle
+  when: V_INST_DIR_STAT.stat.isdir is not defined  
+
+############################
+#####  install
+############################
+
+
+- name: Check that the sqlplus file exists
+  stat:
+    path: '{{ oracle_home }}/bin/sqlplus'
+  register: V_BIN_FILE_STAT
+  
+- name: Create folder for rsp files
+  file: 
+    state=directory 
+    path={{ oracle_stage }}/rsp
+    group=oinstall
+    owner=oracle
+  when: V_BIN_FILE_STAT.stat.exists == False
+
+
+- name: Generate the response file for software only installation
+  template: 
+    src=db_install.rsp 
+    dest="{{ oracle_stage }}/rsp/db_install.rsp"
+    group=oinstall
+    owner=oracle
+  when: V_BIN_FILE_STAT.stat.exists == False
+
+- name: Install 
+  command: "{{ oracle_stage }}/database/runInstaller -silent -ignorePrereq -ignoreSysPrereqs -waitforcompletion -responseFile {{ oracle_stage }}/rsp/db_install.rsp"
+  become: yes
+  become_user: oracle
+  when: V_BIN_FILE_STAT.stat.exists == False
+
+############################
+#####  run ROOT scripts
+############################
+
+  
+  # может не быть файла - если инвентори уже был
+- name: Check that the orainstRoot file exists
+  stat:
+    path: '{{ inventory_location }}/orainstRoot.sh'
+  register: V_INVENT_FILE_STAT
+
+- name: Execute Inventoty root command
+  command: '{{ inventory_location }}/orainstRoot.sh'
+  become_user: root
+  when: V_INVENT_FILE_STAT.stat.exists
+
+- name: Execute DB home root command
+  command: '{{ oracle_home }}/root.sh'
+  become_user: root
+
+
+

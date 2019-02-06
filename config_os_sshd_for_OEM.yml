@@ -1,0 +1,5 @@
+- hosts: ejb_int
+  roles:
+  - system_ssh_update
+
+

@@ -1,0 +1,3 @@
+---
+  DISTR_PATH: /opt/oracle/distr/java8
+  JAVA_VERSION: jdk-8u144-linux-x64

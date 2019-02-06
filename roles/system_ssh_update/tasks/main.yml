@@ -1,0 +1,61 @@
+################################################################################
+# This role corrects ssh params for Oracle OEM
+# author: Sergey Brazgin
+# date: 05.2018
+################################################################################
+
+- name: Add KexAlgorithms to /etc/ssh/sshd_config
+  lineinfile:
+    backup: yes 
+    path: /etc/ssh/sshd_config
+    regexp: '^KexAlgorithms diffie-hellman-group1-sha1,curve25519-sha256@libssh.org'
+    line: 'KexAlgorithms diffie-hellman-group1-sha1,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1'
+  register: resultAddLine1
+
+- name: Add Ciphers to /etc/ssh/sshd_config
+  lineinfile:
+    backup: yes 
+    path: /etc/ssh/sshd_config
+    regexp: '^Ciphers 3des-cbc,blowfish-cbc'
+    line: 'Ciphers 3des-cbc,blowfish-cbc,aes128-cbc,aes128-ctr,aes256-ctr'
+  register: resultAddLine2
+
+- name: regenerate the keys
+  command: ssh-keygen -A
+  when: resultAddLine1.changed or resultAddLine2.changed
+
+- name: Restart sshd
+  service:
+    name: 'sshd'
+    state: 'restarted'
+  when: resultAddLine1.changed or resultAddLine2.changed
+
+
+
+
+#========================================================================================================
+#oracle oem Connection to the SSH daemon (sshd) on the target host failed with the following error : 
+#Algorithm negotiation fail
+
+#This can be caused becuase in some Linux distributions, /etc/ssh/sshd_conf is missing 
+#the KexAlgorithms and Cipher fields to describe which methods are supported by the SSH daemon. 
+
+#1)  Please try to add this inside the conf:
+
+#vi /etc/ssh/sshd_config
+#--
+#KexAlgorithms diffie-hellman-group1-sha1,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1
+#Ciphers 3des-cbc,blowfish-cbc,aes128-cbc,aes128-ctr,aes256-ctr
+#--
+
+#2)
+#After saving, regenerate the keys:
+#Code:
+#ssh-keygen -A
+
+#Then restart SSH service.
+
+#service sshd restart
+
+
+

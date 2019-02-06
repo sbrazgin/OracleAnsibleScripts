@@ -1,0 +1,5 @@
+- name: Install required libraries for SLES
+  zypper: name={{ item }} state=present
+  #with_items: packages_list
+  with_items: "{{ packages_list }}"
+

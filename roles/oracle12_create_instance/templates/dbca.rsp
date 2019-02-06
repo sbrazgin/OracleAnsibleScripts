@@ -1,0 +1,116 @@
+responseFileVersion=/oracle/assistants/rspfmt_dbca_response_schema_v12.2.0
+
+gdbName={{ item.oracle_db_name }}
+
+sid={{ item.oracle_db_name }}
+
+databaseConfigType={{ item.oracle_db_type }}
+
+createAsContainerDatabase={{ item.is_container }}
+
+numberOfPDBs={{ item.num_pdbs }}
+
+pdbName={{ item.pdb_prefix }}
+
+useLocalUndoForPDBs=true
+
+pdbAdminPassword={{ item.oracle_db_passwd }}
+
+{% if item.dbca_templatename is defined %}
+templateName={{ item.dbca_templatename }}
+{% else %}
+templateName={{ dbca_templatename }}
+{% endif %}
+
+sysPassword={{ item.oracle_db_passwd }}
+
+systemPassword={{ item.oracle_db_passwd }}
+
+emConfiguration=NONE
+
+emExpressPort=5500
+
+runCVUChecks=false
+
+dbsnmpPassword={{ item.oracle_db_passwd }}
+
+omsHost=
+omsPort=0
+
+emUser=
+emPassword=
+
+dvConfiguration=false
+dvUserName=
+dvUserPassword=
+dvAccountManagerName=
+dvAccountManagerPassword=
+olsConfiguration=false
+
+datafileJarLocation={ORACLE_HOME}/assistants/dbca/templates/
+
+{% if item.datafile_dest is defined %}
+datafileDestination={{ item.datafile_dest }}
+{% else %}
+datafileDestination={{ datafile_dest }}
+{% endif %}
+
+{% if item.recoveryfile_dest is defined %}
+recoveryAreaDestination={{ item.recoveryfile_dest }}
+{% else %}
+recoveryAreaDestination={{ recoveryfile_dest }}
+{% endif %}
+
+storageType={{ item.storage_type }}
+
+{% if item.recoveryfile_dest is defined %}
+recoveryGroupName={{ item.recoveryfile_dest }}
+{% else %}
+recoveryGroupName={{ recoveryfile_dest }}
+{% endif %}
+
+{% if item.characterset is defined %}
+characterSet={{ item.characterset }}
+{% else %}
+characterSet=AL32UTF8
+{% endif %}
+
+{% if item.ncharacterset is defined %}
+nationalCharacterSet= "{{ item.ncharacterset }}"
+{% else %}
+nationalCharacterSet=AL16UTF16
+{% endif %}
+
+registerWithDirService=false
+dirServiceUserName=
+dirServicePassword=
+
+walletPassword=
+
+listeners=
+
+variablesFile=
+
+{% if item.oracle_init_params is defined %}
+initParams={{ item.oracle_init_params }}
+{% else %}
+#initParams =
+{% endif %}
+
+sampleSchema=false
+
+#{% if item.oracle_db_mem_percent is defined %}
+#memoryPercentage={{ item.oracle_db_mem_percent }}
+#{% else %}
+##memoryPercentage =
+#{% endif %}
+
+databaseType={{ item.oracle_database_type }}
+
+automaticMemoryManagement=false
+
+#{% if item.oracle_db_mem_totalmb is defined %}
+#totalMemory={{ item.oracle_db_mem_totalmb }}
+#{% else %}
+##totalMemory =
+#{% endif %}

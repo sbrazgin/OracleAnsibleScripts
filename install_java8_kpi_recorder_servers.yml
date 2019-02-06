@@ -1,0 +1,5 @@
+- hosts: kpi_recorder_servers
+  roles:
+  - system_install_java_8
+
+

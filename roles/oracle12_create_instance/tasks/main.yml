@@ -1,0 +1,164 @@
+---
+  ##################################
+  ### LISTENER
+  ##################################
+
+  # create listener
+  - name: listener | set fact
+    set_fact:
+        create_listener: "{{ create_listener }}"
+    with_items: "{{ oracle_databases }}"
+    tags: listener_install
+
+#  - import_tasks: listener.yml
+#    when: create_listener
+#    tags: listener_install
+   
+  - name: listener | Create folder for rsp stage files
+    file: 
+      state=directory 
+      path={{ oracle_rsp_stage }}
+      group="{{ oracle_group }}"
+      owner="{{ oracle_user }}"
+    when: create_listener
+    tags: listener_install
+
+  - name: listener | Create responsefile for listener configuration
+    template: 
+      src=netca.rsp 
+      dest={{ oracle_rsp_stage }}/{{ oracle_netca_rsp }}
+      force=yes
+    with_items:
+        - "{{ oracle_databases }}"
+    when: create_listener
+    become: true
+    become_user: "{{ oracle_user }}"
+    tags: listener_install
+
+  - name: listener | Create listener
+    shell: "{{ oracle_home }}/bin/netca -responseFile {{ oracle_rsp_stage }}/{{ oracle_netca_rsp }} -silent"
+    with_items:
+        - "{{ oracle_databases }}"
+    args:
+        creates: "{{ oracle_home }}/network/admin/listener.ora"
+    become: true
+    become_user: "{{ oracle_user }}"
+    tags: listener_install
+
+
+  ##################################
+  ### CREATE INSTANCE
+  ##################################
+
+  - name: Check if database is already created
+    shell: grep {{ item.oracle_db_name }}:{{ oracle_home }} /etc/oratab |wc -l
+    with_items: "{{oracle_databases}}"
+    register: checkdbexist
+    tags:
+    - dbca_run
+
+#  - debug:
+#        var: oracle_databases
+#    tags:
+#    - dbca_run
+
+
+  - name: Create responsefile for dbca
+    template: src=dbca.rsp dest={{ oracle_rsp_stage }}/dbca_{{ item.oracle_db_name }}.rsp owner={{ oracle_user }} group={{ oracle_group }} mode=644 backup=no
+    with_items:
+       - "{{oracle_databases}}"
+    tags:
+    - dbca_run
+
+  - name: Create database(s)
+    shell: "time {{ oracle_home }}/bin/dbca -createDatabase -responseFile {{ oracle_rsp_stage }}/dbca_{{ item.0.oracle_db_name }}.rsp -silent -redoLogFileSize {{ item.0.redolog_size_in_mb }} "
+    with_together:
+       - "{{oracle_databases}}"
+       - "{{checkdbexist.results}}"
+    become: yes
+    become_user: "{{ oracle_user }}"
+    when: item.1.stdout != "1" and item.0.state |upper == "PRESENT"
+    register: oradbcreate
+    tags:
+      - dbca_run
+
+  - debug: var=item
+    with_items:
+         - "{{ oradbcreate.results|map(attribute='stdout_lines')|list }}"
+    when: oradbcreate.changed and master_node
+    ignore_errors: true
+    tags:
+     - dbca_run
+
+  - name: Check if database is running
+    shell: ps -ef |grep pmon |grep -v grep
+    register: psout
+    ignore_errors: true
+    tags:
+     - dbca_run
+
+  - debug: var=psout.stdout_lines
+    tags:
+     - dbca_run
+
+
+
+  ##################################
+  ### ORAENV
+  ##################################
+
+
+  - name: oraenv | Check that the oraenv exists
+    stat:
+      path: '/home/oracle/.oraenv.{{ item.oracle_db_name }}.sh'
+    register: stat_oraenv_result
+    with_items:
+      - "{{oracle_databases}}"
+    tags:
+     - oraenv
+
+
+  - name: oraenv | Generate the oraenv file
+    template: src=oraenv.sh dest=/home/oracle/.oraenv.{{ item.0.oracle_db_name }}.sh
+    become: true
+    become_user: oracle
+    with_together:
+       - "{{oracle_databases}}"
+       - "{{stat_oraenv_result.results}}"
+    when: item.1.stat.exists == False 
+    tags:
+     - oraenv
+
+  - name: oraenv | Change mode the oraenv file
+    file:
+      path: /home/oracle/.oraenv.{{ item.0.oracle_db_name }}.sh
+      mode: "u+rwx"
+    #  command: 'chmod u+x /home/oracle/.oraenv.{{ DB_NAME }}.sh'
+    with_together:
+       - "{{oracle_databases}}"
+       - "{{stat_oraenv_result.results}}"
+    when: item.1.stat.exists == False 
+    tags:
+     - oraenv
+
+#- name: Create .bash_profile if not exists
+#  file:
+#    path: /home/oracle/.bash_profile
+#    state: touch
+#    owner: oracle
+#    group: oinstall
+#  when: stat_oraenv_result.stat.exists == False 
+
+#- name: add to /home/oracle/.bash_profile
+#  blockinfile:
+#    path: /home/oracle/.bash_profile
+#    marker: "# {mark} ORACLE DB env params"
+#    block: |
+#      . /home/oracle/.oraenv.{{ DB_NAME }}.sh
+#  when: stat_oraenv_result.stat.exists == False 
+
+
+
+
+
+    

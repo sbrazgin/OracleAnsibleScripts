@@ -1,0 +1,27 @@
+- name: Add username1 to AllowGroups
+  replace:
+    backup: yes
+    dest: /etc/ssh/sshd_config
+    regexp: '^(AllowGroups(?!.*\b{{ username1 }}\b).*)$'
+    replace: '\1 {{ username1 }}'
+
+- name: Add username2 to AllowGroups
+  replace:
+    backup: yes
+    dest: /etc/ssh/sshd_config
+    regexp: '^(AllowGroups(?!.*\b{{ username2 }}\b).*)$'
+    replace: '\1 {{ username2 }}'
+
+- name: Add username3 to AllowGroups
+  replace:
+    backup: yes
+    dest: /etc/ssh/sshd_config
+    regexp: '^(AllowGroups(?!.*\b{{ username3 }}\b).*)$'
+    replace: '\1 {{ username3 }}'
+
+
+- name: Restart sshd
+  service:
+    name: 'sshd'
+    state: 'restarted'
+

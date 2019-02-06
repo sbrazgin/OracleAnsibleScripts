@@ -1,0 +1,10 @@
+- hosts: test_db
+
+  vars_files:
+    - db-instance-vars.yml
+
+  roles:
+  - oracle_install_11_2_0_4
+
+
+

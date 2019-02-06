@@ -1,0 +1,11 @@
+- hosts: srv-tspravkigibdd-ora01
+
+  roles:
+#   - system_prepare_for_oracle
+#   - oracle_install_12_2
+#   - oracle_install_12_2_patch
+#   - oracle12_create_instance   
+    - oracle_sql_config   
+    
+
+

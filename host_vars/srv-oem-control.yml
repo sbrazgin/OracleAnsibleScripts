@@ -1,0 +1,31 @@
+---
+
+# for ORACLE_HOME
+oracle_base: /u01/oracle/app
+oracle_install_version: "12201"
+oracle_home_name: "dbhome_1"
+oracle_home: '{{ oracle_base }}/product/{{ oracle_install_version }}/{{ oracle_home_name }}'
+inventory_location: '{{ oracle_base }}/inventory'
+
+# Dictionary describing the databases to be installed
+oracle_databases:                                              
+        - oracle_version_db: 12.2.0.1                          # Oracle version
+          oracle_edition: EE                                   # The edition of database-server (EE,SE,SEONE)
+          oracle_db_name: ONKOLOG                           # Database name
+          datafile_dest: /u01/oracle/database                  # Datafiles location 
+          recoveryfile_dest: /u01/oracle/fast_recovery_area
+          oracle_db_passwd: oracle                             # Passwords (sys/system/dbsnm etc)
+          oracle_db_type: SI                                   # Type of database (RAC,RACONENODE,SI)
+          is_container: True                                   # (true/false) Is the database a container database
+          pdb_prefix: ONKOLOG
+          num_pdbs: 1
+          storage_type: FS                                     # Database storage to be used. ASM or FS.
+          oracle_database_type: MULTIPURPOSE                   # MULTIPURPOSE|DATA_WAREHOUSING|OLTP
+          redolog_size_in_mb: 100
+          listener_name: LISTENER12
+          listener_port: 1521
+          state: present                                       # present | absent 
+          nationalCharacterSet: AL32UTF8
+          oracle_init_params: sga_max_size='2G',sga_target='2G',pga_aggregate_target='300M'
+
+

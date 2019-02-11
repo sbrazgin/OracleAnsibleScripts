@@ -1,4 +1,4 @@
-- hosts: srv-tsuu-ora01
+- hosts: srv-onco-ora01st
 
   roles:
    - system_prepare_for_oracle

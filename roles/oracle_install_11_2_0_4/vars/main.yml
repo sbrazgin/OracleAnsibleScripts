@@ -1,5 +1,6 @@
 ---
-  INSTALL_PATH: /opt/oracle/product/11.2.0
+  INSTALL_PATH: /u01/app/oracle/product/11.2.0.4
+  INSTALL_ORA_BASE: /u01/app/oracle
 
   ## must be ext = .tar.gz
   ORACLE_ARCHIVE: oracle11204_PSU171017_home

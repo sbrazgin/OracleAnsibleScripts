@@ -1,5 +1,4 @@
-- hosts: srv-tsuu-ora01
-
+- hosts: tnorma
   roles:
    - system_prepare_for_oracle
    - oracle_install_12_2

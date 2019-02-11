@@ -1,4 +1,8 @@
 - name: Add username1 to AllowGroups
+  become: yes
+  become_method: sudo
+  become_user: root
+
   replace:
     backup: yes
     dest: /etc/ssh/sshd_config
@@ -6,6 +10,10 @@
     replace: '\1 {{ username1 }}'
 
 - name: Add username2 to AllowGroups
+  become: yes
+  become_method: sudo
+  become_user: root
+
   replace:
     backup: yes
     dest: /etc/ssh/sshd_config
@@ -13,6 +21,10 @@
     replace: '\1 {{ username2 }}'
 
 - name: Add username3 to AllowGroups
+  become: yes
+  become_method: sudo
+  become_user: root
+
   replace:
     backup: yes
     dest: /etc/ssh/sshd_config
@@ -21,6 +33,10 @@
 
 
 - name: Restart sshd
+  become: yes
+  become_method: sudo
+  become_user: root
+
   service:
     name: 'sshd'
     state: 'restarted'

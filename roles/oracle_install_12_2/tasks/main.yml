@@ -8,6 +8,10 @@
 #####  copy distr
 ############################
 - name: Create folder for installation files
+  become: yes
+  become_method: sudo
+  become_user: root
+
   file: 
     state=directory 
     path={{ oracle_stage }}
@@ -15,11 +19,19 @@
     owner=oracle
 
 - name: Check that the installer files exists
+  become: yes
+  become_method: sudo
+  become_user: root
+
   stat:
     path: '{{ oracle_stage }}/{{ installer_archives[0] }}'
   register: V_INST_FILE_STAT
 
 - name: Copy installer files
+  become: yes
+  become_method: sudo
+  become_user: root
+
   copy: 
     src={{ item }} 
     dest='{{ oracle_stage }}'
@@ -34,19 +46,24 @@
 ############################
 
 - name: Check that the installer directory exists
+  become: yes
+  become_method: sudo
+  become_user: root
+
   stat:
     path: '{{ oracle_stage }}/database'
   register: V_INST_DIR_STAT
 
 
 - name: Extract installation files
+  become: yes
+  become_user: oracle
+
   unarchive:
     src: '{{ oracle_stage }}/{{ item }}'
     dest: '{{ oracle_stage }}'
     remote_src: yes
   with_items: '{{ installer_archives }}'
-  become: yes
-  become_user: oracle
   when: V_INST_DIR_STAT.stat.isdir is not defined  
 
 ############################
@@ -55,11 +72,17 @@
 
 
 - name: Check that the sqlplus file exists
+  become: yes
+  become_user: oracle
+
   stat:
     path: '{{ oracle_home }}/bin/sqlplus'
   register: V_BIN_FILE_STAT
   
 - name: Create folder for rsp files
+  become: yes
+  become_user: oracle
+
   file: 
     state=directory 
     path={{ oracle_stage }}/rsp
@@ -69,6 +92,9 @@
 
 
 - name: Generate the response file for software only installation
+  become: yes
+  become_user: oracle
+
   template: 
     src=db_install.rsp 
     dest="{{ oracle_stage }}/rsp/db_install.rsp"
@@ -77,9 +103,10 @@
   when: V_BIN_FILE_STAT.stat.exists == False
 
 - name: Install 
-  command: "{{ oracle_stage }}/database/runInstaller -silent -ignorePrereq -ignoreSysPrereqs -waitforcompletion -responseFile {{ oracle_stage }}/rsp/db_install.rsp"
   become: yes
   become_user: oracle
+
+  command: "{{ oracle_stage }}/database/runInstaller -silent -ignorePrereq -ignoreSysPrereqs -waitforcompletion -responseFile {{ oracle_stage }}/rsp/db_install.rsp"
   when: V_BIN_FILE_STAT.stat.exists == False
 
 ############################
@@ -89,18 +116,28 @@
   
   # может не быть файла - если инвентори уже был
 - name: Check that the orainstRoot file exists
+  become: yes
+  become_method: sudo
+  become_user: root
+
   stat:
     path: '{{ inventory_location }}/orainstRoot.sh'
   register: V_INVENT_FILE_STAT
 
 - name: Execute Inventoty root command
-  command: '{{ inventory_location }}/orainstRoot.sh'
+  become: yes
+  become_method: sudo
   become_user: root
+
+  command: '{{ inventory_location }}/orainstRoot.sh'
   when: V_INVENT_FILE_STAT.stat.exists
 
 - name: Execute DB home root command
-  command: '{{ oracle_home }}/root.sh'
+  become: yes
+  become_method: sudo
   become_user: root
+
+  command: '{{ oracle_home }}/root.sh'
 
 
 

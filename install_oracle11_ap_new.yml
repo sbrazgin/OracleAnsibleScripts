@@ -1,0 +1,12 @@
+- hosts: srv-ap-ora01
+
+  vars_files:
+    - db-instance-vars.yml
+
+  roles:
+  #- system_prepare_for_oracle
+  #- system_sshd_oracle_on
+  - oracle_install_11_2_0_4
+
+
+

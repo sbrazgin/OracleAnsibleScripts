@@ -4,6 +4,10 @@
 
 
 - name: add oracle groups
+  become: yes
+  become_method: sudo
+  become_user: root
+
   group: 
     name={{ item.name }} 
   with_items:
@@ -12,6 +16,10 @@
 
 
 - name: add oracle user
+  become: yes
+  become_method: sudo
+  become_user: root
+
   user: 
       name=oracle 
       group=oinstall 
@@ -21,6 +29,10 @@
       password={{ 'oracle'|password_hash('sha512', 'cRhJP88S') }}
 
 - name: create oracle home 
+  become: yes
+  become_method: sudo
+  become_user: root
+
   file: 
       path=/home/oracle 
       state=directory 
@@ -32,12 +44,20 @@
 ##################################################################
 
 - name: Change kernel parameters
+  become: yes
+  become_method: sudo
+  become_user: root
+
   sysctl: name="{{ item.key }}" value="{{ item.value }}" state=present
   with_dict: "{{ kernel_params }}"
   register: resultUpdateKernel
 
 
 - name: restart sysctl
+  become: yes
+  become_method: sudo
+  become_user: root
+
   shell: sysctl -p
   when: resultUpdateKernel.changed
 
@@ -48,6 +68,10 @@
 ##################################################################
 
 - name: check desc in /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      line='#ORACLE_DB params' 
@@ -56,6 +80,10 @@
 
 
 - name: add desc to /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      regexp=^#ORACLE_DB
@@ -64,36 +92,60 @@
 
 
 - name: add line to /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      regexp='^oracle soft nofile'
      line='oracle soft nofile 65536'
 
 - name: add line to /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      regexp='^oracle hard nofile'
      line='oracle hard nofile 65536'
 
 - name: add line to /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      regexp='^oracle soft nproc'
      line='oracle soft nproc 16384'
 
 - name: add line to /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      regexp='^oracle hard nproc'
      line='oracle hard nproc 16384'
 
 - name: add line to /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      regexp='^oracle soft stack'
      line='oracle soft stack 10240'
 
 - name: add line to /etc/security/limits.conf
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/security/limits.conf
      regexp='^oracle hard stack'
@@ -105,6 +157,10 @@
 ##################################################################
 
 - name: add line to /etc/pam.d/login
+  become: yes
+  become_method: sudo
+  become_user: root
+
   lineinfile: 
      dest=/etc/pam.d/login
      regexp='^session required pam_limits.so'
@@ -117,6 +173,10 @@
 ##################################################################
 
 - name: add to /etc/profile 
+  become: yes
+  become_method: sudo
+  become_user: root
+
   blockinfile:
     path: /etc/profile
     marker: "# {mark} ORACLE DB params"
@@ -137,12 +197,21 @@
 ##################################################################
 
 - import_tasks: redhat.yml
+  become: yes
+  become_method: sudo
+  become_user: root
   when: ansible_distribution|lower == 'redhat'
 
 - import_tasks: debian.yml
+  become: yes
+  become_method: sudo
+  become_user: root
   when: ansible_distribution|lower == 'debian'
 
 - import_tasks: sles.yml
+  become: yes
+  become_method: sudo
+  become_user: root
   when: ansible_distribution|lower == 'sles'
 
 
@@ -151,6 +220,10 @@
 ##################################################################
 
 - name: add to /etc/ssh/sshd_config 
+  become: yes
+  become_method: sudo
+  become_user: root
+
   blockinfile:
     path: /etc/ssh/sshd_config
     marker: "# {mark} ORACLE DB params"
@@ -161,8 +234,13 @@
   register: resultUpdateSshd
 
 - name: Restart sshd
+  become: yes
+  become_method: sudo
+  become_user: root
+
   service:
     name: 'sshd'
     state: 'restarted'
   when: resultUpdateSshd.changed
+
 

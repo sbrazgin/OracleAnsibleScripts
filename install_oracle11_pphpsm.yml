@@ -1,4 +1,4 @@
-- hosts: srv-dsuop-ora01.mosgorzdrav.local
+- hosts: srv-psuop-hpsm01
 
   vars_files:
     - db-instance-vars.yml
@@ -7,9 +7,6 @@
   - system_prepare_for_oracle
   - system_sshd_oracle_on
 #  - oracle_install_11_2_0_4
-  - oracle_install_12_2
-  - oracle_install_12_2_patch
-
 
 
 

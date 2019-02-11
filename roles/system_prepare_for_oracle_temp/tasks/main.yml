@@ -1,0 +1,30 @@
+##################################################################
+####### users / roles
+##################################################################
+
+
+- name: add oracle groups
+#  become: yes
+#  become_method: sudo
+#  become_user: root
+  group: 
+    name={{ item.name }} 
+  with_items:
+      - { name: 'oinstall' }
+      - { name: 'dba'}
+
+- name: add oracle user
+
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  user:
+      name=oracle
+      group=oinstall
+      groups=dba
+      home=/home/oracle
+      createhome=no
+      password={{ 'oracle'|password_hash('sha512', 'cRhJP88S') }}
+
+

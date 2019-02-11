@@ -1,0 +1,28 @@
+################################################################################
+# This role run the Oracle Database SQL script
+################################################################################
+
+- name: Copy SQL files
+  become: yes
+  become_user: oracle
+
+  copy: 
+    src={{ SQL_FILE }}
+    dest='{{ TEMP_DIR }}/{{ SQL_FILE }}' 
+    force=yes
+
+  
+- name: Run SQL files
+  become: yes
+  become_user: oracle
+  shell: source /home/oracle/.bash_profile && sqlplus -S / as sysdba @"{{ TEMP_DIR }}/{{ SQL_FILE }}"
+  register: sqlplus_out
+  
+  args:
+    executable: /bin/bash
+    chdir: /home/oracle
+    
+- name: Save log
+  local_action: copy content={{ sqlplus_out.stdout }} dest=/etc/ansible/_{{ inventory_hostname }}_run_sql.log    
+
+  #changed_when: "'APEX_040000' in apexver.stdout"

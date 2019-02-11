@@ -1,0 +1,6 @@
+- hosts: rir2
+
+  roles:
+  - oracle_sql_run
+
+

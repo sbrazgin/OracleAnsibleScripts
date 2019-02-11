@@ -1,0 +1,8 @@
+- hosts: doktor2
+
+  roles:
+  - system_prepare_for_oracle
+  - system_sshd_oracle_on
+
+
+

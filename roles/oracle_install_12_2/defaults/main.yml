@@ -1,4 +1,4 @@
 ---
 
-oracle_stage: /opt/oracle/distr22222
+oracle_stage: /u01/oracle/distr_oracle_stage
 
